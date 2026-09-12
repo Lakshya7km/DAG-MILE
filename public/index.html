@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Little Users Desk</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+</head>
+
+<body>
+    <div class="page-shell">
+        <header class="topbar">
+            <a class="brand" href="/" aria-label="Little Users Desk home">
+                <span class="brand-mark">LU</span>
+                <span>
+                    <strong>Little Users</strong>
+                    <small>API desk</small>
+                </span>
+            </a>
+            <div class="connection-pill"><span class="pulse"></span> Local API <code>:3000</code></div>
+        </header>
+
+        <main>
+            <section class="intro">
+                <div>
+                    <p class="eyebrow">A tiny, friendly control room</p>
+                    <h1>Keep your users<br /><em>in good company.</em></h1>
+                    <p class="intro-copy">Create, peek at, update, and remove users from one calm little workspace.</p>
+                </div>
+                <div class="intro-note" aria-hidden="true">
+                    <span class="sparkle">+</span>
+                    <span class="note-face">:)</span>
+                    <span class="note-label">ready when you are</span>
+                </div>
+            </section>
+
+            <section class="response-strip" aria-live="polite">
+                <div class="response-label"><span class="response-dot"></span> Last server response</div>
+                <strong id="response-code">---</strong>
+                <pre class="response-message" id="response-message">No request made yet</pre>
+            </section>
+
+            <section class="utility-grid" aria-label="Utility endpoints">
+                <article class="panel utility-panel">
+                    <div class="panel-heading">
+                        <div><span class="kicker">GET</span>
+                            <h2>Server check</h2>
+                        </div>
+                        <span class="mini-icon">OK</span>
+                    </div>
+                    <p>Make sure the API is awake and listening.</p>
+                    <button class="button button-soft" id="health-button" type="button">Check health
+                        <span>-></span></button>
+                    <output class="inline-result" id="health-result">Waiting for a check</output>
+                </article>
+
+                <article class="panel utility-panel">
+                    <div class="panel-heading">
+                        <div><span class="kicker">GET</span>
+                            <h2>Say hello</h2>
+                        </div>
+                        <span class="mini-icon coral">Hi</span>
+                    </div>
+                    <form id="hello-form" class="inline-form">
+                        <label class="sr-only" for="hello-name">Name</label>
+                        <input id="hello-name" type="text" placeholder="Someone's name" required />
+                        <button class="button button-coral" type="submit">Greet</button>
+                    </form>
+                    <output class="inline-result" id="hello-result">Try a name above</output>
+                </article>
+
+                <article class="panel utility-panel">
+                    <div class="panel-heading">
+                        <div><span class="kicker">GET</span>
+                            <h2>Search names</h2>
+                        </div>
+                        <span class="mini-icon yellow">?</span>
+                    </div>
+                    <form id="search-form" class="inline-form">
+                        <label class="sr-only" for="search-name">Search name</label>
+                        <input id="search-name" type="text" placeholder="Search query" required />
+                        <button class="button button-yellow" type="submit">Search</button>
+                    </form>
+                    <output class="inline-result" id="search-result">Try a name above</output>
+                </article>
+            </section>
+
+            <section class="workspace-grid">
+                <div class="panel user-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">POST /users</p>
+                            <h2>Add a new user</h2>
+                        </div>
+                        <span class="step-number">01</span>
+                    </div>
+                    <form id="create-form" class="user-form">
+                        <label for="create-name">Name <input id="create-name" name="name" type="text"
+                                placeholder="e.g. Rahul" required /></label>
+                        <label for="create-age">Age <input id="create-age" name="age" type="number" min="0"
+                                placeholder="22" required /></label>
+                        <button class="button button-dark" type="submit">Add user <span>+</span></button>
+                    </form>
+                    <output class="form-message" id="create-result"></output>
+                </div>
+
+                <div class="panel user-panel lookup-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">GET /users/:id</p>
+                            <h2>Find one user</h2>
+                        </div>
+                        <span class="step-number">02</span>
+                    </div>
+                    <form id="lookup-form" class="user-form">
+                        <label for="lookup-id">User ID <input id="lookup-id" type="number" min="1" placeholder="9"
+                                required /></label>
+                        <button class="button button-soft" type="submit">Look up <span>-></span></button>
+                    </form>
+                    <output class="form-message" id="lookup-result"></output>
+                </div>
+            </section>
+
+            <section class="panel directory-panel">
+                <div class="directory-header">
+                    <div>
+                        <p class="eyebrow">GET /users</p>
+                        <h2>User directory</h2>
+                    </div>
+                    <button class="button button-outline" id="refresh-button" type="button"><span
+                            class="refresh-symbol">↻</span> Refresh list</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table">
+                            <tr>
+                                <td class="empty-state" colspan="4">Loading your users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-hint">Use Edit for a partial update. Leave either field empty to keep its current value.
+                </p>
+            </section>
+        </main>
+
+        <footer><span>Made for small steps and tidy endpoints.</span><span id="status-message">Ready</span></footer>
+    </div>
+
+    <dialog id="edit-dialog" class="edit-dialog">
+        <form method="dialog" id="edit-form" class="edit-form">
+            <button class="close-button" value="cancel" aria-label="Close edit dialog">x</button>
+            <p class="eyebrow">PATCH /users/:id</p>
+            <h2>Edit user <span id="edit-id-label"></span></h2>
+            <input id="edit-id" type="hidden" />
+            <label for="edit-name">Name <input id="edit-name" type="text"
+                    placeholder="Leave blank to keep current" /></label>
+            <label for="edit-age">Age <input id="edit-age" type="number" min="0"
+                    placeholder="Leave blank to keep current" /></label>
+            <button class="button button-dark" id="save-edit-button" type="submit">Save changes</button>
+        </form>
+    </dialog>
+</body>
+
+</html>
