@@ -27,9 +27,8 @@ start http://localhost:4000
 echo.
 echo =====================================================================
 echo  System is LIVE!
-echo  - Python ML Engine:  http://127.0.0.1:8000 (ML/Pandas)
-echo  - Node.js Gateway:   http://localhost:4000 (Auth, Proxy, DB)
-echo  - Cloud Database:    Connected to Neon PostgreSQL
+echo  Public app (login then ML workspace): http://localhost:4000
+echo  Python ML engine (internal API only): http://127.0.0.1:8000
 echo =====================================================================
 echo.
 pause

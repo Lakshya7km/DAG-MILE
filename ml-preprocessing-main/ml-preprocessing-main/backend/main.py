@@ -1,5 +1,4 @@
 import io
-from pathlib import Path
 import json
 from typing import List, Optional
 import os
@@ -10,14 +9,14 @@ import tempfile
 import pandas as pd
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, StreamingResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from pydantic import BaseModel
 
 import session as sess
 from preprocessing import apply_preprocessing, suggest_actions
 from schema import detect_relationships, profile_dataframe
 
-app = FastAPI(title="DAG-MILE API", version="0.1.0")
+app = FastAPI(title="DAG-MILE ML Engine", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,24 +27,13 @@ app.add_middleware(
 )
 
 
-# The frontend lives next to the backend folder.
-PROJECT_DIR = Path(__file__).resolve().parents[1]
-FRONTEND_DIR = PROJECT_DIR / "frontend"
-
-
 @app.get("/", include_in_schema=False)
 def home():
-    return FileResponse(FRONTEND_DIR / "index.html")
-
-
-@app.get("/style.css", include_in_schema=False)
-def style():
-    return FileResponse(FRONTEND_DIR / "style.css", media_type="text/css")
-
-
-@app.get("/app.js", include_in_schema=False)
-def javascript():
-    return FileResponse(FRONTEND_DIR / "app.js", media_type="application/javascript")
+    return {
+        "service": "DAG-MILE ML Engine",
+        "docs": "/docs",
+        "note": "The web UI is served by the Node.js gateway. Open that URL and sign in to use upload, analysis, and preprocessing.",
+    }
 
 
 # --------------------------------------------------------------------------- #
