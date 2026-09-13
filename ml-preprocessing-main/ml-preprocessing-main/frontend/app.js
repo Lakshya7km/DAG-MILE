@@ -1,17 +1,12 @@
 function resolveApiBase() {
   if (window.DAG_MILE_API) return window.DAG_MILE_API;
   if (typeof window !== "undefined" && window.location) {
-    // If served directly through the Node gateway on port 4000
-    if (window.location.port === "4000") {
+    // Gateway-served pages, including Render, should call the same origin.
+    if (window.location.port !== "8000") {
       return "";
     }
     // If the page was loaded directly from the Python backend on port 8000
     if (window.location.port === "8000") {
-      const host = window.location.hostname || "127.0.0.1";
-      return `${window.location.protocol}//${host}:4000`;
-    }
-    // Default HTTP host on port 4000
-    if (window.location.protocol.startsWith("http")) {
       const host = window.location.hostname || "127.0.0.1";
       return `${window.location.protocol}//${host}:4000`;
     }
