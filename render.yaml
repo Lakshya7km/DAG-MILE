@@ -6,8 +6,6 @@ services:
     dockerContext: .
     healthCheckPath: /health
     envVars:
-      - key: PORT
-        value: 4000
       - key: PYTHON_ML_URL
         value: http://127.0.0.1:8000
       - key: DATABASE_URL
