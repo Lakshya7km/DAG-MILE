@@ -97,7 +97,7 @@ async function api(path, options = {}) {
   try {
     res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   } catch (netErr) {
-    throw new Error("Unable to connect to the DAG-MILE Gateway (port 4000). Please ensure 'run_all.bat' is running.");
+    throw new Error("Unable to connect to the DAG-MILE Gateway. Please try again.");
   }
 
   // Handle Token Expiry (401/403) with Silent Auto-Refresh
@@ -149,7 +149,7 @@ async function authRequest(path, body) {
       body: JSON.stringify(body),
     });
   } catch (netErr) {
-    throw new Error("Unable to connect to the DAG-MILE Gateway (port 4000). Please ensure 'run_all.bat' is running.");
+    throw new Error("Unable to connect to the DAG-MILE Gateway. Please try again.");
   }
   let data = {};
   try { data = await res.json(); } catch (e) { }
@@ -1072,7 +1072,7 @@ $("#applyBtn").addEventListener("click", async () => {
     state.comparisons[filename] = comparison;
     try {
       sessionStorage.setItem(`dagMile_cmp_${state.sessionId}_${filename}`, JSON.stringify(comparison));
-    } catch (e) {}
+    } catch (e) { }
 
     showToast("Preprocessing transformations applied successfully!", "success");
     await loadFinalPanel();
@@ -1099,7 +1099,7 @@ function renderComparison(filename) {
         comp = JSON.parse(cached);
         state.comparisons[filename] = comp;
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const subtitle = $("#comparisonSubtitle");
