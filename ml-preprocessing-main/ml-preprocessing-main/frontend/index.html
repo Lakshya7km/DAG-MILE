@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DAG-MILE — Intelligent Dataset Preparation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=5.0">
+  <!-- Chart.js for Interactive Data Distribution & Quality Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Live Dataset Preview Modal -->
+  <div id="previewModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div class="modal-tag">DATASET PREVIEW</div>
+          <h3 id="previewModalTitle" style="margin: 4px 0 0;">Dataset Preview</h3>
+          <p class="muted" id="previewModalSubtitle" style="font-size: 12px; margin: 4px 0 0;">First 10 rows from raw
+            dataset</p>
+        </div>
+        <button class="modal-close-btn" id="closePreviewModalBtn" type="button">✕</button>
+      </div>
+      <div class="table-wrap modal-table-wrap">
+        <table id="previewDataTable" class="enterprise-table">
+          <thead id="previewTableHead"></thead>
+          <tbody id="previewTableBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary compact" id="closePreviewBtn" type="button">Close Preview</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- Topbar Header -->
+    <header class="topbar">
+      <div class="topbar-main">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title">
+              <span class="brand-name">DAG-MILE</span>
+            </div>
+            <p class="brand-sub">Intelligent Dataset Preparation Platform</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="system-status-pill">
+            <span class="status-indicator-dot" aria-hidden="true"></span>
+            <span class="status-text">Engine: <strong>Ready</strong></span>
+          </div>
+          <button class="btn secondary compact" id="publicSignInBtn" type="button">Sign in</button>
+          <div class="account-bar hidden" id="accountBar">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-details">
+              <span class="account-email" id="accountLabel">user@workspace</span>
+            </div>
+            <button class="btn ghost compact logout-btn" id="logoutBtn" type="button" title="Sign out">Log out</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Existing processing navigation; shown only inside an authenticated workspace -->
+      <nav class="steps-nav hidden" id="stepNav" aria-label="Dataset preparation workflow">
+        <button class="step-btn active" data-step="dashboard" type="button">
+          <span class="step-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="step-btn" data-step="upload" type="button">
+          <span class="step-num">1</span>
+          <span>Upload</span>
+        </button>
+        <button class="step-btn" data-step="analysis" type="button">
+          <span class="step-num">2</span>
+          <span>Analysis</span>
+        </button>
+        <button class="step-btn" data-step="schema" type="button">
+          <span class="step-num">3</span>
+          <span>Schema Matching</span>
+        </button>
+        <button class="step-btn" data-step="preprocess" type="button">
+          <span class="step-num">4</span>
+          <span>Preprocessing</span>
+        </button>
+        <button class="step-btn" data-step="final" type="button">
+          <span class="step-num">5</span>
+          <span>Final Dataset</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- AUTH / LANDING SCREEN -->
+    <section class="auth-screen" id="authScreen">
+      <div class="auth-hero">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span>DAG-MILE / DATA QUALITY WORKSPACE</span>
+        </div>
+        <h1>Turn scattered files into a dataset you can trust.</h1>
+        <p class="hero-description">
+          Upload, profile, reconcile, clean, and export your data in one deliberate, automated workflow.
+        </p>
+
+        <div class="hero-trust-row" aria-label="Platform capabilities">
+          <span>Secure workspaces</span>
+          <span>Transparent transformations</span>
+          <span>CSV, Excel & JSON support</span>
+        </div>
+
+        <div class="landing-feature-grid">
+          <article class="landing-feature-card">
+            <span class="landing-feature-icon"><i data-lucide="scan-search" aria-hidden="true"></i></span>
+            <strong>Upload &amp; Profile</strong>
+            <p>Understand file quality, data shape, and missing values before making changes.</p>
+          </article>
+          <article class="landing-feature-card">
+            <span class="landing-feature-icon"><i data-lucide="git-compare-arrows" aria-hidden="true"></i></span>
+            <strong>Reconcile &amp; Clean</strong>
+            <p>Review schema relationships and apply transparent preprocessing choices.</p>
+          </article>
+          <article class="landing-feature-card">
+            <span class="landing-feature-icon"><i data-lucide="file-output" aria-hidden="true"></i></span>
+            <strong>Automate &amp; Export</strong>
+            <p>Download model-ready data with a complete transformation audit trail.</p>
+          </article>
+        </div>
+        <div class="hero-anchor-row">
+          <span><i data-lucide="workflow" aria-hidden="true"></i> Five-stage pipeline</span>
+          <span><i data-lucide="shield-check" aria-hidden="true"></i> Human-approved changes</span>
+        </div>
+      </div>
+
+      <div class="auth-card-wrapper">
+        <div class="auth-card">
+          <div class="auth-card-header">
+            <div class="section-tag">SECURE WORKSPACE</div>
+            <h3>Welcome back</h3>
+            <p>Sign in to continue working with your saved dataset projects.</p>
+          </div>
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-auth-tab="login" type="button">Log in</button>
+            <button class="auth-tab" data-auth-tab="register" type="button">Create account</button>
+          </div>
+          <form id="loginForm" class="auth-form">
+            <div class="input-group">
+              <label>Email</label>
+              <input type="email" name="email" placeholder="you@company.com" required>
+            </div>
+            <div class="input-group">
+              <label>Password</label>
+              <input type="password" name="password" placeholder="At least 8 characters" minlength="8" required>
+            </div>
+            <button class="btn primary wide" type="submit">Enter workspace</button>
+          </form>
+          <form id="registerForm" class="auth-form hidden">
+            <div class="input-group">
+              <label>Email</label>
+              <input type="email" name="email" placeholder="you@company.com" required>
+            </div>
+            <div class="input-group">
+              <label>Password</label>
+              <input type="password" name="password" placeholder="At least 8 characters" minlength="8" required>
+            </div>
+            <button class="btn primary wide" type="submit">Create account</button>
+          </form>
+          <p class="form-status" id="authStatus" role="status"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKSPACE PANELS -->
+    <main id="workspace" class="hidden">
+      <section class="project-context hidden" id="projectContext" aria-live="polite">
+        <div class="project-context-main">
+          <span class="project-context-label">ACTIVE PROJECT</span>
+          <strong id="projectContextName">No project selected</strong>
+          <span id="projectContextMeta">Choose a project to begin.</span>
+        </div>
+        <button class="btn ghost compact" id="returnToProjectsBtn" type="button">← All projects</button>
+      </section>
+
+      <!-- DASHBOARD PANEL -->
+      <section class="panel" id="panel-dashboard">
+        <div class="panel-header-row">
+          <div>
+            <div class="section-tag">WORKSPACE DASHBOARD</div>
+            <h2 id="welcomeUserHeader">Welcome to DAG-MILE</h2>
+            <p class="muted">Manage your dataset projects, profile data, and run automated ML preprocessing.</p>
+          </div>
+          <div class="header-action-buttons">
+            <button class="btn primary" id="openNewProjectBtn" type="button">+ Create New Project</button>
+            <button class="btn secondary" id="startPipelineBtn" type="button">Quick Upload →</button>
+          </div>
+        </div>
+
+        <!-- CREATE NEW PROJECT FORM (Collapsible) -->
+        <div id="newProjectCard" class="hidden new-project-container">
+          <div class="new-project-header">
+            <h3>✨ Create a New Dataset Project</h3>
+            <p class="muted">Create a dedicated workspace project to upload, profile, and clean your datasets.</p>
+          </div>
+          <form id="createProjectForm" class="new-project-form">
+            <input type="text" id="newProjectNameInput" placeholder="Project name (e.g. Housing Price Prediction)"
+              required>
+            <button class="btn primary" type="submit">Create & Open Project</button>
+            <button class="btn ghost" type="button" id="cancelNewProjectBtn">Cancel</button>
+          </form>
+          <p id="createProjectStatus" class="form-status"></p>
+        </div>
+
+        <!-- Dashboard Clean Metric Summary -->
+        <div class="metrics-grid">
+          <article class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-label">SAVED PROJECTS</span>
+              <span class="metric-badge">COUNT</span>
+            </div>
+            <strong class="metric-number" id="totalProjectsCount">0</strong>
+            <span class="metric-subtext">Total Projects in Workspace</span>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-label">ACTIVE PROJECT</span>
+              <span class="metric-badge status-live">ACTIVE</span>
+            </div>
+            <strong class="metric-number text-truncate" id="activeProjectNameDisplay">None Selected</strong>
+            <span class="metric-subtext" id="activeProjectHint">Select or create a project below</span>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-label">PROCESSING ENGINE</span>
+              <span class="metric-badge status-live">ONLINE</span>
+            </div>
+            <strong class="metric-number" style="color: var(--teal-light);">Ready</strong>
+            <span class="metric-subtext">ML Preprocessing Kernel Standing By</span>
+          </article>
+        </div>
+
+        <!-- SAVED PROJECTS TABLE -->
+        <div class="table-container-header">
+          <div>
+            <h3>Your Saved Projects</h3>
+            <p class="muted" style="font-size: 13px; margin: 2px 0 0;">Select a project to upload datasets and run
+              preprocessing</p>
+          </div>
+          <button class="btn secondary compact" id="refreshProjectsBtn" type="button">🔄 Refresh Projects</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="projectsTable" class="enterprise-table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Status</th>
+                <th>Files</th>
+                <th>Date</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projectsTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 24px;" class="muted">Loading projects...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- STEP 1: UPLOAD -->
+      <section class="panel hidden" id="panel-upload">
+        <div class="panel-header-row">
+          <div>
+            <div class="section-tag">STEP 1</div>
+            <h2>📁 Upload your datasets</h2>
+            <p class="muted" id="uploadProjectSubtitle">Upload files for your ML preprocessing pipeline</p>
+          </div>
+          <button class="btn ghost compact" data-back="dashboard" type="button">← Back to Dashboard</button>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon">📥</div>
+          <p><strong>Drop files or select a folder</strong></p>
+          <p class="muted" style="font-size: 12.5px;">CSV • XLSX • XLS • XLSB • XLSM • JSON • TSV • ODS</p>
+          <input type="file" id="fileInput" multiple webkitdirectory directory
+            accept=".csv,.xlsx,.xls,.xlsm,.xlsb,.json,.tsv,.ods" hidden>
+        </div>
+        <ul class="file-pill-list" id="pendingFiles"></ul>
+
+        <div class="actions">
+          <button class="btn ghost" data-back="dashboard" type="button">← Dashboard</button>
+          <button class="btn primary" id="analyzeBtn" disabled type="button">Analyze & Upload →</button>
+        </div>
+      </section>
+
+      <!-- STEP 2: DATASET ANALYSIS -->
+      <section class="panel hidden" id="panel-analysis">
+        <div class="panel-header-row">
+          <div>
+            <div class="section-tag">STEP 2</div>
+            <h2>Dataset Analysis</h2>
+            <p class="muted">Files detected: <strong id="fileCount">0</strong></p>
+          </div>
+          <button class="btn ghost compact" data-back="upload" type="button">← Back</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="fileTable" class="enterprise-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Rows × Cols</th>
+                <th>Missing cells</th>
+                <th>Duplicate rows</th>
+                <th style="text-align: center;">Preview</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- Interactive Data Quality Chart -->
+        <div class="chart-box">
+          <div class="chart-header">
+            <div>
+              <h3>📊 Column Missing Values & Quality Distribution</h3>
+              <p class="muted" style="font-size: 12.5px; margin: 2px 0 0;">Visual representation of null values across
+                detected columns.</p>
+            </div>
+          </div>
+          <div class="chart-canvas-container">
+            <canvas id="qualityChart"></canvas>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn ghost" data-back="upload" type="button">← Back</button>
+          <button class="btn primary" id="toSchemaBtn" type="button">Continue →</button>
+        </div>
+      </section>
+
+      <!-- STEP 3: SCHEMA MATCHING -->
+      <section class="panel hidden" id="panel-schema">
+        <div class="panel-header-row">
+          <div>
+            <div class="section-tag">STEP 3</div>
+            <h2>Schema Matching</h2>
+            <p class="muted">Detect naming conflicts across files and optionally combine datasets.</p>
+          </div>
+          <button class="btn ghost compact" data-back="analysis" type="button">← Back</button>
+        </div>
+
+        <div id="conflictList"></div>
+        <div id="noConflicts" class="hidden empty-state">✓ No naming conflicts detected across files.</div>
+
+        <div class="merge-section">
+          <h3>Combine datasets (optional)</h3>
+          <p class="muted" style="font-size: 13px; margin: 0 0 16px;">Perform relational joins or row concatenation
+            across uploaded files.</p>
+          <div class="merge-box">
+            <div class="merge-row">
+              <select id="mergeFileA"></select>
+              <select id="mergeOp">
+                <option value="join">JOIN on…</option>
+                <option value="concat">CONCAT (stack rows)</option>
+              </select>
+              <select id="mergeFileB"></select>
+            </div>
+            <div class="merge-row" id="joinKeysRow">
+              <select id="mergeColA"></select>
+              <span>=</span>
+              <select id="mergeColB"></select>
+              <select id="mergeHow">
+                <option value="inner">inner</option>
+                <option value="left">left</option>
+                <option value="outer">outer</option>
+              </select>
+            </div>
+            <div class="merge-row">
+              <input type="text" id="mergeName" placeholder="merged_dataset.csv">
+              <button class="btn secondary" id="mergeBtn" type="button">Merge</button>
+            </div>
+            <p class="muted" id="mergeStatus"></p>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn ghost" data-back="analysis" type="button">← Back</button>
+          <button class="btn primary" id="toPreprocessBtn" type="button">Continue →</button>
+        </div>
+      </section>
+
+      <!-- STEP 4: PREPROCESSING -->
+      <section class="panel hidden" id="panel-preprocess">
+        <div class="panel-header-row">
+          <div>
+            <div class="section-tag">STEP 4</div>
+            <h2>Preprocessing</h2>
+            <p class="muted">Review and configure automated cleaning suggestions per column.</p>
+          </div>
+          <button class="btn ghost compact" data-back="schema" type="button">← Back</button>
+        </div>
+
+        <div class="field-row">
+          <label><strong>File to clean:</strong></label>
+          <select id="preprocessFileSelect" class="dataset-select"></select>
+        </div>
+
+        <div class="quality-summary" id="qualitySummary"></div>
+
+        <div class="table-wrap">
+          <table id="suggestTable" class="enterprise-table">
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Type</th>
+                <th>Missing</th>
+                <th>Missing action</th>
+                <th>Outliers</th>
+                <th>Outlier action</th>
+                <th>Encode</th>
+                <th>Scale</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="dropDupCheckbox" checked>
+          <span>Remove duplicate rows (<span id="dupCount">0</span> found)</span>
+        </label>
+
+        <div class="actions">
+          <button class="btn ghost" data-back="schema" type="button">← Back</button>
+          <button class="btn primary" id="applyBtn" type="button">Apply Preprocessing →</button>
+        </div>
+      </section>
+
+      <!-- STEP 5: FINAL DATASET -->
+      <section class="panel hidden" id="panel-final">
+        <div class="panel-header-row">
+          <div>
+            <div class="section-tag">STEP 5</div>
+            <h2 id="finalProjectTitle">Final Dataset & Transformation Export</h2>
+            <p class="muted" id="finalProjectSubtitle">Download cleaned datasets and transformation audit logs.</p>
+          </div>
+          <button class="btn ghost compact" data-back="dashboard" type="button">📊 Return to Dashboard</button>
+        </div>
+
+        <!-- BEFORE VS AFTER PREPROCESSING COMPARISON (CACHE-BACKED DIFF) -->
+        <section class="comparison-section" id="comparisonSection">
+          <div class="comparison-header">
+            <div>
+              <div class="section-tag">DATASET DIFF & IMPACT AUDIT</div>
+              <h3 style="margin: 4px 0 0;">📊 Preprocessing Impact: Before vs. After</h3>
+              <p class="muted" id="comparisonSubtitle" style="margin: 4px 0 0; font-size: 13px;">Review structural changes, handled missing values, encoded features, and deleted columns.</p>
+            </div>
+            <div class="comparison-cache-pill">
+              <span>⚡ Client Cache Active</span>
+              <span class="muted" style="font-size: 10px; margin-left: 4px;">(0 DB queries)</span>
+            </div>
+          </div>
+
+          <!-- Diff Metric Cards -->
+          <div class="diff-metrics-grid" id="diffMetricsGrid">
+            <div class="diff-metric-card">
+              <span class="diff-metric-label">DATASET SHAPE</span>
+              <div class="diff-metric-val" id="diffMetricShape">
+                <span class="before-val" id="diffBeforeShape">—</span>
+                <span class="diff-arrow">→</span>
+                <span class="after-val" id="diffAfterShape">—</span>
+              </div>
+              <span class="diff-subtext" id="diffMetricShapeSub">Rows × Columns</span>
+            </div>
+            <div class="diff-metric-card">
+              <span class="diff-metric-label">MISSING CELLS</span>
+              <div class="diff-metric-val" id="diffMetricMissing">
+                <span class="before-val" id="diffBeforeMissing">—</span>
+                <span class="diff-arrow">→</span>
+                <span class="after-val" id="diffAfterMissing">—</span>
+              </div>
+              <span class="diff-subtext" id="diffMetricMissingSub">Total null count</span>
+            </div>
+            <div class="diff-metric-card">
+              <span class="diff-metric-label">DUPLICATE ROWS</span>
+              <div class="diff-metric-val" id="diffMetricDuplicates">
+                <span class="before-val" id="diffBeforeDuplicates">—</span>
+                <span class="diff-arrow">→</span>
+                <span class="after-val" id="diffAfterDuplicates">—</span>
+              </div>
+              <span class="diff-subtext" id="diffMetricDuplicatesSub">Duplicates removed</span>
+            </div>
+          </div>
+
+          <!-- Feature-by-Feature Comparison Table -->
+          <div class="table-wrap comparison-table-wrap">
+            <table class="enterprise-table" id="comparisonTable">
+              <thead>
+                <tr>
+                  <th>Original Feature</th>
+                  <th>Raw State</th>
+                  <th>Applied Action</th>
+                  <th>Result / Impact</th>
+                  <th style="text-align: right;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonTableBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 20px;" class="muted">Apply preprocessing in Step 4 to generate a live comparison diff.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="final-preview-section" aria-labelledby="finalPreviewTitle">
+          <div class="final-preview-header">
+            <div>
+              <div class="section-tag">LAST PREPROCESSED DATASET</div>
+              <h3 id="finalPreviewTitle">Dataset preview</h3>
+              <p class="muted" id="finalPreviewSubtitle">Loading the latest available dataset…</p>
+            </div>
+            <span class="preview-live-badge">LIVE PREVIEW</span>
+          </div>
+          <div class="table-wrap final-preview-table-wrap">
+            <table id="finalPreviewTable" class="enterprise-table">
+              <thead id="finalPreviewHead"></thead>
+              <tbody id="finalPreviewBody">
+                <tr>
+                  <td class="muted" style="padding: 20px; text-align: center;">Select a project to view its latest
+                    dataset.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="log-box-wrapper">
+          <div class="log-box-header">
+            <span>TRANSFORMATION LOG</span>
+            <span class="status-indicator-dot"></span>
+          </div>
+          <div class="log-box" id="transformLog"></div>
+        </div>
+
+        <div class="export-actions-bar">
+          <div class="export-file-selector">
+            <label>Cleaned File:</label>
+            <select id="finalFileSelect"></select>
+          </div>
+          <div class="export-buttons-group">
+            <button class="btn primary" id="downloadDataBtn" type="button">⬇ Download Cleaned CSV</button>
+            <button class="btn secondary" id="downloadJsonBtn" type="button">⬇ Download Cleaned JSON</button>
+            <button class="btn ghost" id="downloadLogBtn" type="button">⬇ Download Transformation Log</button>
+            <button class="btn ghost" data-back="preprocess" type="button">← Preprocess another</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js?v=5.0"></script>
+  <script>
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+
+</html>
