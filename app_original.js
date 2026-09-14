@@ -37,7 +37,7 @@ function setTheme(theme) {
   const toggle = $("#themeToggle");
   if (toggle) {
     const light = theme === "light";
-    toggle.textContent = light ? "☾ Dark theme" : "☼ Light theme";
+    toggle.textContent = light ? "Γÿ╛ Dark theme" : "Γÿ╝ Light theme";
     toggle.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
   }
 }
@@ -144,7 +144,6 @@ function showStep(name) {
   $all(".step").forEach(s => {
     s.classList.toggle("active", s.dataset.step === name);
   });
-  try { if (window.lucide) lucide.createIcons(); } catch (e) {}
 }
 
 $all(".step").forEach(step => {
@@ -218,7 +217,7 @@ function renderPendingFiles() {
     const li = document.createElement("li");
     li.innerHTML = `<span>${f.name}</span>`;
     const rm = document.createElement("button");
-    rm.textContent = "✕";
+    rm.textContent = "Γ£ò";
     rm.addEventListener("click", () => {
       state.pendingFiles.splice(i, 1);
       renderPendingFiles();
@@ -269,7 +268,7 @@ async function runAnalysis() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="mono-cell">${fname}</td>
-      <td class="mono-cell"><span class="data-value">${p.n_rows.toLocaleString()} × ${p.n_cols}</span></td>
+      <td class="mono-cell"><span class="data-value">${p.n_rows.toLocaleString()} ├ù ${p.n_cols}</span></td>
       <td><span class="status-badge ${p.missing_cells_pct > 0 ? "status-warning" : "status-good"}">${p.missing_cells_pct}%</span></td>
       <td><span class="status-badge ${p.duplicate_rows > 0 ? "status-warning" : "status-good"}">${p.duplicate_rows} (${p.duplicate_pct}%)</span></td>
     `;
@@ -311,13 +310,13 @@ function renderConflicts() {
     const cls = r.relationship === "conflict" ? "" : r.relationship === "join_key" ? "join-key" : "same-feature";
     card.className = `conflict-card ${cls}`;
 
-    const headlineText = r.relationship === "conflict" ? "⚠ POSSIBLE FEATURE CONFLICT"
-      : r.relationship === "join_key" ? "🔗 POSSIBLE JOIN KEY"
-        : "≈ POSSIBLY THE SAME FEATURE";
+    const headlineText = r.relationship === "conflict" ? "ΓÜá POSSIBLE FEATURE CONFLICT"
+      : r.relationship === "join_key" ? "≡ƒöù POSSIBLE JOIN KEY"
+        : "Γëê POSSIBLY THE SAME FEATURE";
 
     card.innerHTML = `
       <div class="headline">${headlineText}</div>
-      <div class="cols">${r.file_a} → ${r.column_a}  /  ${r.file_b} → ${r.column_b}${r.files_count > 2 ? ` · present in ${r.files_count} files` : ""}</div>
+      <div class="cols">${r.file_a} ΓåÆ ${r.column_a}  /  ${r.file_b} ΓåÆ ${r.column_b}${r.files_count > 2 ? ` ┬╖ present in ${r.files_count} files` : ""}</div>
       <div class="note">${r.note}</div>
       <div class="confidence-row"><span>Confidence</span><strong>${Math.round(r.confidence * 100)}%</strong></div>
       <div class="confidence-meter" aria-label="Confidence ${Math.round(r.confidence * 100)} percent"><span style="width: ${Math.round(r.confidence * 100)}%"></span></div>
@@ -415,7 +414,7 @@ $("#mergeBtn").addEventListener("click", async () => {
   }
 
   const status = $("#mergeStatus");
-  status.textContent = "Merging…";
+  status.textContent = "MergingΓÇª";
   setButtonBusy(mergeButton, true, "Merging");
   try {
     const res = await api(`/api/merge/${state.sessionId}`, {
@@ -424,7 +423,7 @@ $("#mergeBtn").addEventListener("click", async () => {
       body: JSON.stringify(body),
     });
     state.uploadedFiles.push(res.new_file);
-    status.textContent = `✓ Created ${res.new_file.filename} (${res.new_file.rows} rows × ${res.new_file.cols} cols)`;
+    status.textContent = `Γ£ô Created ${res.new_file.filename} (${res.new_file.rows} rows ├ù ${res.new_file.cols} cols)`;
     populateMergeSelectors();
     await runAnalysis();
   } catch (err) {
@@ -500,7 +499,7 @@ function renderSuggestTable(data) {
       ? (col.outlier_count > 0
         ? `<span class="status-badge status-warning"><strong>${col.outlier_count}</strong><small>${col.outlier_pct}% of rows</small></span>`
         : `<span class="status-badge status-good"><strong>0</strong><small>none detected</small></span>`)
-      : "—";
+      : "ΓÇö";
 
     tr.innerHTML = `
       <td class="mono-cell">${col.column}</td>
@@ -508,9 +507,9 @@ function renderSuggestTable(data) {
       <td>${missingCell}</td>
       <td>${selectHtml("missing", MISSING_OPTIONS[col.feature_type] || ["none"], col.missing_strategy || "none")}</td>
       <td>${outlierCell}</td>
-      <td>${col.feature_type === "numeric" ? selectHtml("outlier", OUTLIER_OPTIONS, col.outlier_action || "none") : "—"}</td>
-      <td>${col.feature_type === "categorical" || col.feature_type === "boolean" ? selectHtml("encode", ENCODE_OPTIONS, col.encode || "none") : "—"}</td>
-      <td>${col.feature_type === "numeric" ? selectHtml("scale", SCALE_OPTIONS, col.scale || "none") : "—"}</td>
+      <td>${col.feature_type === "numeric" ? selectHtml("outlier", OUTLIER_OPTIONS, col.outlier_action || "none") : "ΓÇö"}</td>
+      <td>${col.feature_type === "categorical" || col.feature_type === "boolean" ? selectHtml("encode", ENCODE_OPTIONS, col.encode || "none") : "ΓÇö"}</td>
+      <td>${col.feature_type === "numeric" ? selectHtml("scale", SCALE_OPTIONS, col.scale || "none") : "ΓÇö"}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -572,7 +571,7 @@ async function loadFinalPanel() {
     entries.forEach(e => {
       const line = document.createElement("div");
       line.textContent = "  " + e;
-      if (e.startsWith("⚠")) line.classList.add("log-line-warn");
+      if (e.startsWith("ΓÜá")) line.classList.add("log-line-warn");
       logBox.appendChild(line);
     });
   }
