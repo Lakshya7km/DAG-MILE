@@ -5,146 +5,267 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DAG-MILE — Intelligent Dataset Preparation</title>
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['ui-monospace', 'monospace'] },
-          colors: { teal: { 500: '#34C7A0', 600: '#1E8A6C', 700: '#166550' } }
-        }
-      }
-    };
-  </script>
-  
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
-  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light theme">☼ Light theme</button>
-  <section id="publicHome" class="max-w-6xl mx-auto pt-16 px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-    <div id="projectIntro">
-      <p class="eyebrow text-teal-600 font-mono text-sm tracking-widest uppercase mb-4 block">DAG-MILE / Data preparation workspace</p>
-      <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-6 leading-tight">Intelligent Dataset Preparation</h1>
-      <p class="lead text-xl text-slate-500 mb-6">From raw data to model-ready datasets.</p>
-      <p class="intro-description text-slate-500 mb-8">A transparent data preparation workspace for profiling, matching, cleaning,
-        transforming, and exporting datasets.</p>
-      <div class="intro-rule"><span></span><small>Built for careful, repeatable data preparation</small></div>
-      <ul class="project-points space-y-4">
-        <li class="p-4 bg-white border-l-4 border-teal-500 rounded-r-xl shadow-sm"><strong>Upload and profile</strong><span>Inspect rows, columns, missing values, and
-            duplicates.</span></li>
-        <li class="p-4 bg-white border-l-4 border-teal-500 rounded-r-xl shadow-sm"><strong>Match schemas</strong><span>Find relationships, resolve conflicts, and combine
-            datasets.</span></li>
-        <li class="p-4 bg-white border-l-4 border-teal-500 rounded-r-xl shadow-sm"><strong>Preprocess and export</strong><span>Handle missing values, outliers, encoding,
-            scaling, and
-            logs.</span></li>
-      </ul>
-    </div>
-    <section id="authScreen" class="bg-white border border-slate-200 shadow-xl rounded-3xl p-8">
-      <h2 class="text-2xl font-bold text-slate-900 mb-2">Welcome to DAG-MILE</h2>
-      <div id="authTabs" class="flex gap-6 border-b border-slate-200 mb-6">
-        <button class="active" data-auth-tab="login" type="button" class="pb-3 border-b-2 font-medium text-slate-500 hover:text-slate-900 transition-colors">Log in</button>
-        <button data-auth-tab="register" type="button" class="pb-3 border-b-2 font-medium text-slate-500 hover:text-slate-900 transition-colors">Create account</button>
+<body>
+
+  <!-- ═══════════════════ THEME TOGGLE ═══════════════════ -->
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light theme">
+    <i data-lucide="sun" class="icon-sm"></i>
+    <span>Light</span>
+  </button>
+
+  <!-- ═══════════════════ PUBLIC LANDING ═══════════════════ -->
+  <div id="publicHome">
+    <div class="landing-grid">
+
+      <!-- Left: Intro -->
+      <div class="landing-intro">
+        <div class="landing-badge">
+          <i data-lucide="cpu" class="icon-xs"></i>
+          <span>DAG-MILE · Data Workspace</span>
+        </div>
+        <h1 class="landing-title">Intelligent<br>Dataset<br><span class="title-accent">Preparation</span></h1>
+        <p class="landing-lead">From messy raw files to model-ready datasets — automated, transparent, repeatable.</p>
+
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-icon-wrap">
+              <i data-lucide="upload-cloud" class="icon-sm"></i>
+            </div>
+            <div>
+              <strong>Upload &amp; Profile</strong>
+              <p>Inspect rows, columns, missing values, and duplicates across any format.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon-wrap">
+              <i data-lucide="git-merge" class="icon-sm"></i>
+            </div>
+            <div>
+              <strong>Match Schemas</strong>
+              <p>Find relationships, resolve conflicts, and combine datasets intelligently.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon-wrap">
+              <i data-lucide="zap" class="icon-sm"></i>
+            </div>
+            <div>
+              <strong>Preprocess &amp; Export</strong>
+              <p>Handle missing values, outliers, encoding, scaling &amp; transformation logs.</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="auth-subtitle">Log in to your workspace</p>
-      <form id="loginForm">
-        <label for="loginEmail">Email</label>
-        <input id="loginEmail" type="email" name="email" placeholder="you@example.com" required>
-        <label for="loginPassword">Password</label>
-        <input id="loginPassword" type="password" name="password" placeholder="At least 8 characters" minlength="8"
-          required>
-        <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" type="submit">Log in</button>
-      </form>
-      <form id="registerForm" class="hidden">
-        <label for="registerEmail">Email</label>
-        <input id="registerEmail" type="email" name="email" placeholder="you@example.com" required>
-        <label for="registerPassword">Password</label>
-        <input id="registerPassword" type="password" name="password" placeholder="At least 8 characters" minlength="8"
-          required>
-        <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" type="submit">Create account</button>
-      </form>
-      <p id="authStatus"></p>
-    </section>
-  </section>
-  <div id="sessionBar" class="hidden"><span class="workspace-status">Workspace · Active</span><span
-      id="accountLabel"></span><button id="logoutBtn" type="button">Log out</button></div>
-  <div class="app hidden max-w-5xl mx-auto px-4 py-8" id="workspace">
-    <header class="topbar flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 mb-8 bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl shadow-sm sticky top-4 z-40">
-      <div class="brand flex items-center gap-3">
-        <span class="logo text-teal-600 font-bold text-2xl">⛁</span>
-        <div>
-          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-6 leading-tight">DAG-MILE</h1>
+
+      <!-- Right: Auth -->
+      <div id="authScreen">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <i data-lucide="database" class="icon-md"></i>
+          </div>
+          <h2>Welcome back</h2>
+          <p class="auth-subtitle">Sign in to your DAG-MILE workspace</p>
+        </div>
+
+        <div id="authTabs">
+          <button class="auth-tab active" data-auth-tab="login" type="button">Log in</button>
+          <button class="auth-tab" data-auth-tab="register" type="button">Create account</button>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <div class="input-wrap">
+              <i data-lucide="mail" class="input-icon icon-xs"></i>
+              <input id="loginEmail" type="email" name="email" placeholder="you@example.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <div class="input-wrap">
+              <i data-lucide="lock" class="input-icon icon-xs"></i>
+              <input id="loginPassword" type="password" name="password" placeholder="At least 8 characters" minlength="8" required>
+            </div>
+          </div>
+          <button class="btn primary full-width" type="submit">
+            <i data-lucide="log-in" class="icon-xs"></i>
+            Sign in
+          </button>
+        </form>
+
+        <form id="registerForm" class="auth-form hidden">
+          <div class="form-group">
+            <label for="registerEmail">Email address</label>
+            <div class="input-wrap">
+              <i data-lucide="mail" class="input-icon icon-xs"></i>
+              <input id="registerEmail" type="email" name="email" placeholder="you@example.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="registerPassword">Password</label>
+            <div class="input-wrap">
+              <i data-lucide="lock" class="input-icon icon-xs"></i>
+              <input id="registerPassword" type="password" name="password" placeholder="At least 8 characters" minlength="8" required>
+            </div>
+          </div>
+          <button class="btn primary full-width" type="submit">
+            <i data-lucide="user-plus" class="icon-xs"></i>
+            Create account
+          </button>
+        </form>
+
+        <p id="authStatus"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SESSION BAR ═══════════════════ -->
+  <div id="sessionBar" class="hidden">
+    <div class="session-left">
+      <span class="session-dot"></span>
+      <span class="workspace-status">Workspace · Active</span>
+      <span id="accountLabel"></span>
+    </div>
+    <button id="logoutBtn" type="button">
+      <i data-lucide="log-out" class="icon-xs"></i>
+      Log out
+    </button>
+  </div>
+
+  <!-- ═══════════════════ APP WORKSPACE ═══════════════════ -->
+  <div class="app hidden" id="workspace">
+
+    <!-- Top Navigation Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo">
+          <i data-lucide="database" class="icon-sm"></i>
+        </div>
+        <div class="brand-text">
+          <h1>DAG-MILE</h1>
           <p>Intelligent Dataset Preparation</p>
         </div>
       </div>
+
       <nav class="steps" id="stepNav">
-        <div class="step active px-3 py-1.5 text-sm font-medium bg-teal-50 text-teal-700 rounded-md cursor-default" data-step="home">Home</div>
-        <div class="step px-3 py-1.5 text-sm font-medium text-slate-500 rounded-md cursor-pointer hover:bg-slate-100 hover:text-slate-900 transition-colors" data-step="upload">1. Upload</div>
-        <div class="step px-3 py-1.5 text-sm font-medium text-slate-500 rounded-md cursor-pointer hover:bg-slate-100 hover:text-slate-900 transition-colors" data-step="analysis">2. Analysis</div>
-        <div class="step px-3 py-1.5 text-sm font-medium text-slate-500 rounded-md cursor-pointer hover:bg-slate-100 hover:text-slate-900 transition-colors" data-step="schema">3. Schema Matching</div>
-        <div class="step px-3 py-1.5 text-sm font-medium text-slate-500 rounded-md cursor-pointer hover:bg-slate-100 hover:text-slate-900 transition-colors" data-step="preprocess">4. Preprocessing</div>
-        <div class="step px-3 py-1.5 text-sm font-medium text-slate-500 rounded-md cursor-pointer hover:bg-slate-100 hover:text-slate-900 transition-colors" data-step="final">5. Final Dataset</div>
+        <div class="step active" data-step="home">
+          <i data-lucide="home" class="icon-xs"></i>
+          <span>Home</span>
+        </div>
+        <div class="step" data-step="upload">
+          <span class="step-num">1</span>
+          <span>Upload</span>
+        </div>
+        <div class="step" data-step="analysis">
+          <span class="step-num">2</span>
+          <span>Analysis</span>
+        </div>
+        <div class="step" data-step="schema">
+          <span class="step-num">3</span>
+          <span>Schema</span>
+        </div>
+        <div class="step" data-step="preprocess">
+          <span class="step-num">4</span>
+          <span>Preprocess</span>
+        </div>
+        <div class="step" data-step="final">
+          <span class="step-num">5</span>
+          <span>Export</span>
+        </div>
       </nav>
     </header>
 
     <main>
-      <!-- HOME DASHBOARD -->
-      <section class="panel bg-white border border-slate-200 shadow-sm rounded-2xl p-8 mb-8" id="panel-home">
-        <p class="section-eyebrow text-xs font-semibold tracking-wider text-teal-600 uppercase mb-2 block">WORKSPACE HOME</p>
-        <h2 class="text-2xl font-bold text-slate-900 mb-2">Prepare your dataset</h2>
-        <p class="muted text-slate-500 mb-8">Start a new data preparation workflow or continue working with your uploaded datasets.</p>
-        <div class="home-grid grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="home-card bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-            <span class="home-card-label text-xs font-semibold text-teal-600 tracking-wider mb-2 block uppercase">WORKFLOW</span>
-            <strong>Upload → Analyze <i data-lucide="arrow-right" class="w-4 h-4"></i> Match → Clean → Export</strong>
-            <p class="muted text-slate-500 mb-8">A structured preparation pipeline from raw files to model-ready data.</p>
-            <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="startPipelineBtn" type="button">Start preparing data →</button>
+
+      <!-- ── HOME DASHBOARD ── -->
+      <section class="panel" id="panel-home">
+        <p class="eyebrow">Workspace Home</p>
+        <h2>Prepare your dataset</h2>
+        <p class="muted">Start a new data preparation workflow or continue working with your uploaded datasets.</p>
+
+        <div class="home-grid">
+          <div class="home-card home-card--primary">
+            <div class="home-card-icon">
+              <i data-lucide="workflow" class="icon-sm"></i>
+            </div>
+            <span class="home-card-label">Pipeline</span>
+            <strong>Upload → Analyze → Match → Clean → Export</strong>
+            <p class="muted">A structured preparation pipeline from raw files to model-ready data.</p>
+            <button class="btn primary" id="startPipelineBtn" type="button">
+              Start preparing data
+              <i data-lucide="arrow-right" class="icon-xs"></i>
+            </button>
           </div>
-          <div class="home-card bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-            <span class="home-card-label text-xs font-semibold text-teal-600 tracking-wider mb-2 block uppercase">PROCESSING ENGINE</span>
-            <strong>Ready</strong>
-            <p class="muted text-slate-500 mb-8">Python ML engine<br><span class="technical-line">Node gateway</span></p>
+
+          <div class="home-card">
+            <div class="home-card-icon">
+              <i data-lucide="cpu" class="icon-sm"></i>
+            </div>
+            <span class="home-card-label">Processing Engine</span>
+            <strong>Python ML Engine</strong>
+            <p class="muted">FastAPI backend running Pandas &amp; Scikit-Learn for automated analysis.</p>
+            <span class="status-pill status-good">
+              <span class="pulse-dot"></span>
+              Ready
+            </span>
           </div>
-          <div class="home-card bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-            <span class="home-card-label text-xs font-semibold text-teal-600 tracking-wider mb-2 block uppercase">WORKSPACE</span>
+
+          <div class="home-card">
+            <div class="home-card-icon">
+              <i data-lucide="shield-check" class="icon-sm"></i>
+            </div>
+            <span class="home-card-label">Workspace</span>
             <strong>Connected</strong>
-            <p class="muted text-slate-500 mb-8">Authenticated files are associated with your workspace.</p>
+            <p class="muted">Authenticated — your files are securely associated with your workspace.</p>
+            <span class="status-pill status-good">
+              <span class="pulse-dot"></span>
+              Authenticated
+            </span>
           </div>
         </div>
       </section>
 
-      <!-- STEP 1: UPLOAD -->
-      <section class="panel bg-white border border-slate-200 shadow-sm rounded-2xl p-8 mb-8" id="panel-upload">
-        <p class="section-eyebrow text-xs font-semibold tracking-wider text-teal-600 uppercase mb-2 block">STEP 1 · INGEST</p>
-        <h2 class="text-2xl font-bold text-slate-900 mb-2">Upload your datasets</h2>
-        <p class="muted text-slate-500 mb-8">Add the files you want to profile and prepare.</p>
+      <!-- ── STEP 1: UPLOAD ── -->
+      <section class="panel hidden" id="panel-upload">
+        <p class="eyebrow">Step 1 · Ingest</p>
+        <h2>Upload your datasets</h2>
+        <p class="muted">Drag and drop files below or browse to select. Supported: CSV, XLSX, JSON, TSV and more.</p>
+
         <div class="dropzone" id="dropzone">
-          <i data-lucide="upload-cloud" class="w-12 h-12 text-teal-500 mx-auto mb-4"></i>
-          <p><strong>Drop files or select a folder</strong></p>
-          <p class="muted text-slate-500 mb-8">CSV • XLSX • XLS • XLSB • XLSM • JSON • TSV • ODS</p>
-          <span class="dropzone-action">Browse files</span>
+          <div class="dropzone-icon-wrap">
+            <i data-lucide="upload-cloud" class="icon-lg"></i>
+          </div>
+          <p class="dropzone-title">Drop files here or <span class="dropzone-action">browse files</span></p>
+          <p class="muted dropzone-formats">CSV · XLSX · XLS · XLSB · XLSM · JSON · TSV · ODS</p>
           <input type="file" id="fileInput" multiple webkitdirectory directory
             accept=".csv,.xlsx,.xls,.xlsm,.xlsb,.json,.tsv,.ods" hidden>
         </div>
+
         <ul class="file-pill-list" id="pendingFiles"></ul>
+
         <div class="actions">
-          <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="analyzeBtn" disabled>Analyze <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+          <button class="btn primary" id="analyzeBtn" disabled>
+            Analyze files
+            <i data-lucide="arrow-right" class="icon-xs"></i>
+          </button>
         </div>
       </section>
 
-      <!-- STEP 2: DATASET ANALYSIS -->
-      <section class="panel hidden bg-white border border-slate-200 shadow-sm rounded-2xl p-8 mb-8" id="panel-analysis">
-        <p class="section-eyebrow text-xs font-semibold tracking-wider text-teal-600 uppercase mb-2 block">STEP 2 · PROFILE</p>
-        <h2 class="text-2xl font-bold text-slate-900 mb-2">Dataset Analysis</h2>
-        <p class="muted text-slate-500 mb-8">Profile of uploaded datasets · <strong id="fileCount">0</strong> files detected</p>
+      <!-- ── STEP 2: ANALYSIS ── -->
+      <section class="panel hidden" id="panel-analysis">
+        <p class="eyebrow">Step 2 · Profile</p>
+        <h2>Dataset Analysis</h2>
+        <p class="muted">Profile of uploaded datasets · <strong id="fileCount">0</strong> files detected</p>
+
         <div class="table-wrap">
           <table id="fileTable">
             <thead>
@@ -158,63 +279,87 @@
             <tbody></tbody>
           </table>
         </div>
+
         <div class="actions">
-          <button class="btn ghost px-4 py-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50" data-back="upload"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-          <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="toSchemaBtn">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+          <button class="btn ghost" data-back="upload">
+            <i data-lucide="arrow-left" class="icon-xs"></i>
+            Back
+          </button>
+          <button class="btn primary" id="toSchemaBtn">
+            Continue
+            <i data-lucide="arrow-right" class="icon-xs"></i>
+          </button>
         </div>
       </section>
 
-      <!-- STEP 3: SCHEMA MATCHING -->
-      <section class="panel hidden bg-white border border-slate-200 shadow-sm rounded-2xl p-8 mb-8" id="panel-schema">
-        <p class="section-eyebrow text-xs font-semibold tracking-wider text-teal-600 uppercase mb-2 block">STEP 3 · RESOLVE</p>
-        <h2 class="text-2xl font-bold text-slate-900 mb-2">Schema Matching</h2>
-        <p class="muted text-slate-500 mb-8">Review relationships, conflicts, and compatible dataset combinations.</p>
-        <div id="conflictList"></div>
-        <div id="noConflicts" class="hidden empty-state"><strong>✓ No schema conflicts detected</strong><span>Your
-            uploaded datasets do not currently show any naming conflicts or detected relationships.</span></div>
+      <!-- ── STEP 3: SCHEMA MATCHING ── -->
+      <section class="panel hidden" id="panel-schema">
+        <p class="eyebrow">Step 3 · Resolve</p>
+        <h2>Schema Matching</h2>
+        <p class="muted">Review relationships, conflicts, and compatible dataset combinations.</p>
 
-        <h3 class="text-lg font-semibold text-slate-900 mt-8 mb-2">Combine datasets</h3>
-        <p class="muted helper-copy">Join related datasets or stack compatible files into a single dataset.</p>
+        <div id="conflictList"></div>
+        <div id="noConflicts" class="hidden empty-state">
+          <i data-lucide="check-circle" class="icon-md" style="color:var(--teal)"></i>
+          <strong>No schema conflicts detected</strong>
+          <span>Your uploaded datasets do not currently show any naming conflicts or detected relationships.</span>
+        </div>
+
+        <div class="section-divider">
+          <h3>Combine datasets</h3>
+          <p class="muted helper-copy">Join related datasets or stack compatible files into a single dataset.</p>
+        </div>
+
         <div class="merge-box">
           <div class="merge-row">
-            <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="mergeFileA"></select>
-            <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="mergeOp">
+            <select id="mergeFileA"></select>
+            <select id="mergeOp">
               <option value="join">JOIN on…</option>
               <option value="concat">CONCAT (stack rows)</option>
             </select>
-            <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="mergeFileB"></select>
+            <select id="mergeFileB"></select>
           </div>
           <div class="merge-row" id="joinKeysRow">
-            <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="mergeColA"></select>
-            <span>=</span>
-            <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="mergeColB"></select>
-            <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="mergeHow">
-              <option value="inner">inner</option>
-              <option value="left">left</option>
-              <option value="outer">outer</option>
+            <select id="mergeColA"></select>
+            <span class="merge-equals">=</span>
+            <select id="mergeColB"></select>
+            <select id="mergeHow">
+              <option value="inner">inner join</option>
+              <option value="left">left join</option>
+              <option value="outer">outer join</option>
             </select>
           </div>
           <div class="merge-row">
-            <input type="text" class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow" id="mergeName" placeholder="merged_dataset.csv">
-            <button class="btn secondary px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="mergeBtn">Merge</button>
+            <input type="text" id="mergeName" placeholder="merged_dataset.csv">
+            <button class="btn secondary" id="mergeBtn">
+              <i data-lucide="git-merge" class="icon-xs"></i>
+              Merge
+            </button>
           </div>
           <p class="muted" id="mergeStatus"></p>
         </div>
 
         <div class="actions">
-          <button class="btn ghost px-4 py-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50" data-back="analysis"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-          <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="toPreprocessBtn">Continue <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+          <button class="btn ghost" data-back="analysis">
+            <i data-lucide="arrow-left" class="icon-xs"></i>
+            Back
+          </button>
+          <button class="btn primary" id="toPreprocessBtn">
+            Continue
+            <i data-lucide="arrow-right" class="icon-xs"></i>
+          </button>
         </div>
       </section>
 
-      <!-- STEP 4: PREPROCESSING -->
-      <section class="panel hidden bg-white border border-slate-200 shadow-sm rounded-2xl p-8 mb-8" id="panel-preprocess">
-        <p class="section-eyebrow text-xs font-semibold tracking-wider text-teal-600 uppercase mb-2 block">STEP 4 · TRANSFORM</p>
-        <h2 class="text-2xl font-bold text-slate-900 mb-2">Preprocessing</h2>
-        <p class="muted text-slate-500 mb-8">Review and configure transformations before generating the cleaned dataset.</p>
+      <!-- ── STEP 4: PREPROCESSING ── -->
+      <section class="panel hidden" id="panel-preprocess">
+        <p class="eyebrow">Step 4 · Transform</p>
+        <h2>Preprocessing</h2>
+        <p class="muted">Review and configure automated cleaning suggestions per column.</p>
+
         <div class="field-row">
-          <label><strong>Dataset</strong></label>
-          <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="preprocessFileSelect"></select>
+          <label><strong>File to clean:</strong></label>
+          <select id="preprocessFileSelect"></select>
         </div>
 
         <div class="quality-summary" id="qualitySummary"></div>
@@ -225,9 +370,9 @@
               <tr>
                 <th>Column</th>
                 <th>Type</th>
-                <th>Missing / % rows</th>
+                <th>Missing</th>
                 <th>Missing action</th>
-                <th>Outliers / % rows</th>
+                <th>Outliers</th>
                 <th>Outlier action</th>
                 <th>Encode</th>
                 <th>Scale</th>
@@ -239,35 +384,63 @@
 
         <label class="checkbox-row">
           <input type="checkbox" id="dropDupCheckbox" checked>
-          <span><strong>Duplicate rows</strong><br><small><span id="dupCount">0</span> duplicate rows
-              detected</small></span>
+          <span>
+            <strong>Duplicate rows</strong>
+            <br><small><span id="dupCount">0</span> duplicate rows detected</small>
+          </span>
           <span class="checkbox-spacer"></span>
           <span>Remove duplicate rows</span>
         </label>
 
         <div class="actions">
-          <button class="btn ghost px-4 py-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50" data-back="schema"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
-          <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="applyBtn">Apply transformations <i data-lucide="sparkles" class="w-4 h-4"></i></button>
+          <button class="btn ghost" data-back="schema">
+            <i data-lucide="arrow-left" class="icon-xs"></i>
+            Back
+          </button>
+          <button class="btn primary" id="applyBtn">
+            Apply transformations
+            <i data-lucide="sparkles" class="icon-xs"></i>
+          </button>
         </div>
       </section>
 
-      <!-- STEP 5: FINAL -->
-      <section class="panel hidden bg-white border border-slate-200 shadow-sm rounded-2xl p-8 mb-8" id="panel-final">
-        <p class="section-eyebrow text-xs font-semibold tracking-wider text-teal-600 uppercase mb-2 block">STEP 5 · EXPORT</p>
-        <h2 class="text-2xl font-bold text-slate-900 mb-2">Dataset ready</h2>
-        <p class="muted text-slate-500 mb-8">Your preprocessing workflow has been completed.</p>
+      <!-- ── STEP 5: FINAL DATASET ── -->
+      <section class="panel hidden" id="panel-final">
+        <p class="eyebrow">Step 5 · Export</p>
+        <h2>Dataset ready</h2>
+        <p class="muted">Your preprocessing workflow has been completed. Download the cleaned dataset below.</p>
+
         <div class="log-box" id="transformLog"></div>
+
         <div class="actions">
-          <select class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow cursor-pointer" id="finalFileSelect"></select>
-          <button class="btn primary px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="downloadDataBtn">⬇ Download cleaned data</button>
-          <button class="btn secondary px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="downloadLogBtn">⬇ Download transformation log</button>
-          <button class="btn ghost px-4 py-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50" data-back="preprocess"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to preprocess another file</button>
+          <select id="finalFileSelect"></select>
+          <button class="btn primary" id="downloadDataBtn">
+            <i data-lucide="download" class="icon-xs"></i>
+            Download cleaned data
+          </button>
+          <button class="btn secondary" id="downloadLogBtn">
+            <i data-lucide="file-text" class="icon-xs"></i>
+            Download transformation log
+          </button>
+          <button class="btn ghost" data-back="preprocess">
+            <i data-lucide="arrow-left" class="icon-xs"></i>
+            Back to preprocess another file
+          </button>
         </div>
       </section>
+
     </main>
   </div>
 
-  <script src="app.js?v=20260914-auth"></script>
+  <script src="app.js?v=20260914-ui2"></script>
+  <script>
+    // Initialize Lucide icons on load and whenever DOM changes
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+    // Also try immediately in case DOMContentLoaded already fired
+    if (window.lucide) lucide.createIcons();
+  </script>
 </body>
 
 </html>

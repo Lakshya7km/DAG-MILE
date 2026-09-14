@@ -144,6 +144,8 @@ function showStep(name) {
   $all(".step").forEach(s => {
     s.classList.toggle("active", s.dataset.step === name);
   });
+  // Re-initialize Lucide icons for newly visible elements
+  try { if (window.lucide) lucide.createIcons(); } catch (e) {}
 }
 
 $all(".step").forEach(step => {
