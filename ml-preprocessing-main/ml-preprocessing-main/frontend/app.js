@@ -587,3 +587,8 @@ $("#downloadLogBtn").addEventListener("click", () => {
   const token = encodeURIComponent(localStorage.getItem("dagMileAccessToken") || "");
   window.open(`${API_BASE}/api/download-log/${state.sessionId}?token=${token}`, "_blank");
 });
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  if(window.lucide) lucide.createIcons();
+});
