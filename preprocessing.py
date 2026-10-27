@@ -3,7 +3,6 @@ Preprocessing engine. Every function that mutates data returns
 (new_df, log_lines) — nothing is ever changed silently.
 """
 from typing import Any, Dict, List, Tuple
-
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, StandardScaler
@@ -12,11 +11,8 @@ from schema import infer_feature_type
 
 
 def suggest_actions(df: pd.DataFrame) -> Dict[str, Any]:
-    """Produce the 'Suggested actions' panel: one suggestion per column
-    plus dataset-level duplicate/outlier summary."""
     n_rows = len(df)
     dup_count = int(df.duplicated().sum())
-
     column_suggestions = []
     outlier_total = 0
 
@@ -69,20 +65,6 @@ def suggest_actions(df: pd.DataFrame) -> Dict[str, Any]:
 def apply_preprocessing(
     df: pd.DataFrame, config: Dict[str, Any]
 ) -> Tuple[pd.DataFrame, List[str]]:
-    """
-    config = {
-      "drop_duplicates": bool,
-      "columns": {
-         col_name: {
-            "missing_strategy": "median"|"mean"|"most_frequent"|"constant"|"drop_rows"|"none",
-            "constant_value": Any (if missing_strategy == "constant"),
-            "outlier_action": "winsorize"|"remove"|"keep",
-            "encode": "onehot"|"label"|"none",
-            "scale": "standard"|"minmax"|"none",
-         }, ...
-      }
-    }
-    """
     log: List[str] = []
     out = df.copy()
 
@@ -104,21 +86,33 @@ def apply_preprocessing(
         missing_before = int(out[col].isna().sum())
         if strategy == "none" or missing_before == 0:
             continue
+
         if strategy == "median":
             val = out[col].median()
-            out[col] = out[col].fillna(val)
-            log.append(f"✓ {col}: {missing_before} missing values → median ({round(float(val), 3)})")
+            if pd.notna(val):
+                out[col] = out[col].fillna(val)
+                log.append(f"✓ {col}: {missing_before} missing values → median ({round(float(val), 3)})")
+            else:
+                log.append(f"⚠ {col}: Median fill skipped (all values in column are missing)")
         elif strategy == "mean":
             val = out[col].mean()
-            out[col] = out[col].fillna(val)
-            log.append(f"✓ {col}: {missing_before} missing values → mean ({round(float(val), 3)})")
+            if pd.notna(val):
+                out[col] = out[col].fillna(val)
+                log.append(f"✓ {col}: {missing_before} missing values → mean ({round(float(val), 3)})")
+            else:
+                log.append(f"⚠ {col}: Mean fill skipped (all values in column are missing)")
         elif strategy == "most_frequent":
             mode = out[col].mode(dropna=True)
             val = mode.iloc[0] if not mode.empty else None
-            out[col] = out[col].fillna(val)
-            log.append(f"✓ {col}: {missing_before} missing values → most frequent ('{val}')")
+            if val is not None and pd.notna(val):
+                out[col] = out[col].fillna(val)
+                log.append(f"✓ {col}: {missing_before} missing values → most frequent ('{val}')")
+            else:
+                log.append(f"⚠ {col}: Most frequent fill skipped (no mode found)")
         elif strategy == "constant":
             val = cfg.get("constant_value")
+            if val is None or (isinstance(val, str) and val.strip() == ""):
+                val = 0 if pd.api.types.is_numeric_dtype(out[col]) else "Missing"
             out[col] = out[col].fillna(val)
             log.append(f"✓ {col}: {missing_before} missing values → constant ('{val}')")
         elif strategy == "drop_rows":
@@ -126,7 +120,7 @@ def apply_preprocessing(
             out = out[out[col].notna()].reset_index(drop=True)
             log.append(f"✓ {col}: {before - len(out)} rows with missing values dropped")
 
-    # 3. Outliers (numeric columns only, IQR-based)
+    # 3. Outliers (numeric columns only)
     for col, cfg in col_configs.items():
         if col not in out.columns:
             continue

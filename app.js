@@ -1,60 +1,23 @@
-const API_BASE = window.DAG_MILE_API || "";
+const API_BASE = window.DAG_MILE_API || "http://127.0.0.1:8000";
 
 const state = {
   sessionId: null,
-  pendingFiles: [],      // File objects, before upload
-  uploadedFiles: [],     // [{filename, rows, cols, columns}]
+  pendingFiles: [],
+  uploadedFiles: [],
   relationships: [],
-  resolutions: {},       // key -> decision label, for UI state
+  resolutions: {},
   currentPreprocessFile: null,
   suggestions: null,
 };
 
-// ---------------------------------------------------------------- helpers
 function $(sel) { return document.querySelector(sel); }
 function $all(sel) { return Array.from(document.querySelectorAll(sel)); }
 
-function setButtonBusy(button, busy, label = "Working") {
-  if (!button) return;
-  if (busy) {
-    if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
-    button.disabled = true;
-    button.setAttribute("aria-busy", "true");
-    button.textContent = label;
-  } else {
-    button.disabled = false;
-    button.removeAttribute("aria-busy");
-    if (button.dataset.originalLabel) {
-      button.textContent = button.dataset.originalLabel;
-      delete button.dataset.originalLabel;
-    }
-  }
-}
-
-function setTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  localStorage.setItem("dagMileTheme", theme);
-  const toggle = $("#themeToggle");
-  if (toggle) {
-    const light = theme === "light";
-    toggle.textContent = light ? "☾ Dark theme" : "☼ Light theme";
-    toggle.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
-  }
-}
-
-$("#themeToggle").addEventListener("click", () => {
-  setTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
-});
-setTheme(localStorage.getItem("dagMileTheme") || "dark");
-
 async function api(path, options = {}) {
-  const headers = { ...(options.headers || {}) };
-  const token = localStorage.getItem("dagMileAccessToken");
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, options);
   if (!res.ok) {
     let msg = res.statusText;
-    try { const j = await res.json(); msg = j.detail || msg; } catch (e) { }
+    try { const j = await res.json(); msg = j.detail || msg; } catch (e) {}
     throw new Error(msg);
   }
   const ct = res.headers.get("content-type") || "";
@@ -62,147 +25,37 @@ async function api(path, options = {}) {
   return res;
 }
 
-async function authenticate(endpoint, email, password) {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  const contentType = res.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) {
-    throw new Error(`Authentication endpoint returned ${contentType || "an unexpected response"}. Restart the Node gateway and refresh the page.`);
-  }
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || data.message || res.statusText);
-  if (endpoint.endsWith("register")) {
-    return authenticate("/api/v1/login", email, password);
-  }
-  localStorage.setItem("dagMileAccessToken", data.accessToken);
-  localStorage.setItem("dagMileRefreshToken", data.refreshToken);
-  localStorage.setItem("dagMileUser", email);
-}
-
-function enterWorkspace() {
-  $("#publicHome").classList.add("hidden");
-  $("#authScreen").classList.add("hidden");
-  $("#workspace").classList.remove("hidden");
-  $("#sessionBar").classList.remove("hidden");
-  $("#accountLabel").textContent = localStorage.getItem("dagMileUser") || "Authenticated";
-  showStep("home");
-}
-
-function showLogin() {
-  $("#publicHome").classList.remove("hidden");
-  $("#authScreen").classList.remove("hidden");
-  $("#workspace").classList.add("hidden");
-  $("#sessionBar").classList.add("hidden");
-}
-
-function setAuthTab(tab) {
-  $all("[data-auth-tab]").forEach(button => button.classList.toggle("active", button.dataset.authTab === tab));
-  $("#loginForm").classList.toggle("hidden", tab !== "login");
-  $("#registerForm").classList.toggle("hidden", tab !== "register");
-  $("#authStatus").textContent = "";
-}
-
-$all("[data-auth-tab]").forEach(button => button.addEventListener("click", () => setAuthTab(button.dataset.authTab)));
-
-async function submitAuth(event, endpoint) {
-  event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  try {
-    await authenticate(endpoint, form.get("email"), form.get("password"));
-    enterWorkspace();
-  } catch (error) {
-    $("#authStatus").textContent = error.message;
-  }
-}
-
-$("#loginForm").addEventListener("submit", event => submitAuth(event, "/api/v1/login"));
-$("#registerForm").addEventListener("submit", event => submitAuth(event, "/api/v1/register"));
-
-$("#logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("dagMileAccessToken");
-  localStorage.removeItem("dagMileRefreshToken");
-  localStorage.removeItem("dagMileUser");
-  showLogin();
-});
-
-$("#startPipelineBtn").addEventListener("click", () => showStep("upload"));
-
-if (localStorage.getItem("dagMileAccessToken")) enterWorkspace();
-else showLogin();
-
 function showStep(name) {
   $all(".panel").forEach(p => p.classList.add("hidden"));
-  const panel = $(`#panel-${name}`);
-  if (!panel) return;
-  panel.classList.remove("hidden");
-  panel.classList.remove("panel-enter");
-  void panel.offsetWidth;
-  panel.classList.add("panel-enter");
+  $(`#panel-${name}`).classList.remove("hidden");
   $all(".step").forEach(s => {
     s.classList.toggle("active", s.dataset.step === name);
   });
-  try { if (window.lucide) lucide.createIcons(); } catch (e) {}
 }
-
-$all(".step").forEach(step => {
-  step.addEventListener("click", () => showStep(step.dataset.step));
-});
 
 $all("[data-back]").forEach(btn => {
   btn.addEventListener("click", () => showStep(btn.dataset.back));
 });
 
-// ---------------------------------------------------------------- STEP 1: upload
 const dropzone = $("#dropzone");
 const fileInput = $("#fileInput");
 
-let dragDepth = 0;
-
-dropzone.addEventListener("dragenter", e => {
-  e.preventDefault();
-  dragDepth += 1;
-  dropzone.classList.add("is-dragging");
-});
-
 dropzone.addEventListener("click", () => fileInput.click());
 dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("dragover"); });
-dropzone.addEventListener("dragleave", e => {
-  e.preventDefault();
-  dragDepth = Math.max(0, dragDepth - 1);
-  if (!dragDepth) dropzone.classList.remove("dragover", "is-dragging");
-});
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
 dropzone.addEventListener("drop", e => {
   e.preventDefault();
-  dragDepth = 0;
-  dropzone.classList.remove("is-dragging", "dragover");
   dropzone.classList.remove("dragover");
   addPendingFiles(e.dataTransfer.files);
 });
 fileInput.addEventListener("change", () => addPendingFiles(fileInput.files));
 
 function addPendingFiles(fileList) {
-  const allowed = [
-    ".csv",
-    ".tsv",
-    ".xlsx",
-    ".xls",
-    ".xlsm",
-    ".xlsb",
-    ".json",
-    ".ods"
-  ];
+  const allowed = [".csv", ".tsv", ".xlsx", ".xls", ".xlsm", ".xlsb", ".json", ".ods"];
 
   for (const f of fileList) {
     const name = f.name.toLowerCase();
-
-    // Ignore Excel temporary/lock files
-    if (name.startsWith("~$")) {
-      continue;
-    }
-
+    if (name.startsWith("~$")) continue;
     if (allowed.some(ext => name.endsWith(ext))) {
       state.pendingFiles.push(f);
     }
@@ -231,7 +84,8 @@ function renderPendingFiles() {
 
 $("#analyzeBtn").addEventListener("click", async () => {
   const btn = $("#analyzeBtn");
-  setButtonBusy(btn, true, "Uploading");
+  btn.disabled = true;
+  btn.textContent = "Uploading…";
   try {
     const form = new FormData();
     if (state.sessionId) form.append("session_id", state.sessionId);
@@ -252,11 +106,11 @@ $("#analyzeBtn").addEventListener("click", async () => {
   } catch (err) {
     alert("Upload failed: " + err.message);
   } finally {
-    setButtonBusy(btn, false);
+    btn.disabled = false;
+    btn.textContent = "Analyze →";
   }
 });
 
-// ---------------------------------------------------------------- STEP 2: analysis
 async function runAnalysis() {
   const data = await api(`/api/analyze/${state.sessionId}`);
   state.relationships = data.relationships;
@@ -269,26 +123,20 @@ async function runAnalysis() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="mono-cell">${fname}</td>
-      <td class="mono-cell"><span class="data-value">${p.n_rows.toLocaleString()} × ${p.n_cols}</span></td>
-      <td><span class="status-badge ${p.missing_cells_pct > 0 ? "status-warning" : "status-good"}">${p.missing_cells_pct}%</span></td>
-      <td><span class="status-badge ${p.duplicate_rows > 0 ? "status-warning" : "status-good"}">${p.duplicate_rows} (${p.duplicate_pct}%)</span></td>
+      <td class="mono-cell">${p.n_rows.toLocaleString()} × ${p.n_cols}</td>
+      <td>${p.missing_cells_pct}%</td>
+      <td>${p.duplicate_rows} (${p.duplicate_pct}%)</td>
     `;
     tbody.appendChild(tr);
   }
 }
 
 $("#toSchemaBtn").addEventListener("click", () => {
-  const btn = $("#toSchemaBtn");
-  setButtonBusy(btn, true, "Preparing");
-  requestAnimationFrame(() => {
-    renderConflicts();
-    populateMergeSelectors();
-    showStep("schema");
-    setButtonBusy(btn, false);
-  });
+  renderConflicts();
+  populateMergeSelectors();
+  showStep("schema");
 });
 
-// ---------------------------------------------------------------- STEP 3: schema matching
 function renderConflicts() {
   const container = $("#conflictList");
   const empty = $("#noConflicts");
@@ -305,7 +153,7 @@ function renderConflicts() {
   summary.textContent = `${state.relationships.length} meaningful schema relationship${state.relationships.length === 1 ? "" : "s"} found`;
   container.appendChild(summary);
 
-  state.relationships.forEach((r, idx) => {
+  state.relationships.forEach((r) => {
     const key = `${r.file_a}:${r.column_a}::${r.file_b}:${r.column_b}`;
     const card = document.createElement("div");
     const cls = r.relationship === "conflict" ? "" : r.relationship === "join_key" ? "join-key" : "same-feature";
@@ -313,15 +161,13 @@ function renderConflicts() {
 
     const headlineText = r.relationship === "conflict" ? "⚠ POSSIBLE FEATURE CONFLICT"
       : r.relationship === "join_key" ? "🔗 POSSIBLE JOIN KEY"
-        : "≈ POSSIBLY THE SAME FEATURE";
+      : "≈ POSSIBLY THE SAME FEATURE";
 
     card.innerHTML = `
       <div class="headline">${headlineText}</div>
       <div class="cols">${r.file_a} → ${r.column_a}  /  ${r.file_b} → ${r.column_b}${r.files_count > 2 ? ` · present in ${r.files_count} files` : ""}</div>
       <div class="note">${r.note}</div>
-      <div class="confidence-row"><span>Confidence</span><strong>${Math.round(r.confidence * 100)}%</strong></div>
-      <div class="confidence-meter" aria-label="Confidence ${Math.round(r.confidence * 100)} percent"><span style="width: ${Math.round(r.confidence * 100)}%"></span></div>
-      <div class="confidence recommendation">Recommendation: <strong>${r.recommendation}</strong></div>
+      <div class="confidence">Recommendation: <strong>${r.recommendation}</strong> · Confidence: ${Math.round(r.confidence * 100)}%</div>
       <div class="row-actions" data-key="${key}"></div>
     `;
 
@@ -400,7 +246,6 @@ $("#mergeOp").addEventListener("change", () => {
 });
 
 $("#mergeBtn").addEventListener("click", async () => {
-  const mergeButton = $("#mergeBtn");
   const op = $("#mergeOp").value;
   const fileA = $("#mergeFileA").value;
   const fileB = $("#mergeFileB").value;
@@ -416,7 +261,6 @@ $("#mergeBtn").addEventListener("click", async () => {
 
   const status = $("#mergeStatus");
   status.textContent = "Merging…";
-  setButtonBusy(mergeButton, true, "Merging");
   try {
     const res = await api(`/api/merge/${state.sessionId}`, {
       method: "POST",
@@ -430,8 +274,6 @@ $("#mergeBtn").addEventListener("click", async () => {
   } catch (err) {
     status.textContent = "";
     alert("Merge failed: " + err.message);
-  } finally {
-    setButtonBusy(mergeButton, false);
   }
 });
 
@@ -442,7 +284,6 @@ $("#toPreprocessBtn").addEventListener("click", async () => {
   showStep("preprocess");
 });
 
-// ---------------------------------------------------------------- STEP 4: preprocessing
 $("#preprocessFileSelect").addEventListener("change", async () => {
   state.currentPreprocessFile = $("#preprocessFileSelect").value;
   await loadSuggestions();
@@ -450,26 +291,20 @@ $("#preprocessFileSelect").addEventListener("change", async () => {
 
 async function loadSuggestions() {
   if (!state.currentPreprocessFile) return;
-  const nextButton = $("#toPreprocessBtn");
-  setButtonBusy(nextButton, true, "Loading");
-  try {
-    const data = await api(`/api/preprocess-suggestions/${state.sessionId}/${encodeURIComponent(state.currentPreprocessFile)}`);
-    state.suggestions = data;
-    renderQualitySummary(data);
-    renderSuggestTable(data);
-    $("#dupCount").textContent = data.duplicate_rows;
-    $("#dropDupCheckbox").checked = data.duplicate_rows > 0;
-  } finally {
-    setButtonBusy(nextButton, false);
-  }
+  const data = await api(`/api/preprocess-suggestions/${state.sessionId}/${encodeURIComponent(state.currentPreprocessFile)}`);
+  state.suggestions = data;
+  renderQualitySummary(data);
+  renderSuggestTable(data);
+  $("#dupCount").textContent = data.duplicate_rows;
+  $("#dropDupCheckbox").checked = data.duplicate_rows > 0;
 }
 
 function renderQualitySummary(data) {
   const box = $("#qualitySummary");
   box.innerHTML = `
-    <div class="metric"><span class="value">${data.n_rows.toLocaleString()}</span><span class="label">ROWS</span><small>Total dataset rows</small></div>
-    <div class="metric"><span class="value">${data.duplicate_pct}%</span><span class="label">DUPLICATE ROWS</span><small>Share of rows</small></div>
-    <div class="metric"><span class="value">${data.outlier_rows_estimate}</span><span class="label">POTENTIAL OUTLIERS</span><small>Estimated row count</small></div>
+    <div class="metric"><span class="value">${data.n_rows.toLocaleString()}</span><span class="label">ROWS</span></div>
+    <div class="metric"><span class="value">${data.duplicate_pct}%</span><span class="label">DUPLICATE ROWS</span></div>
+    <div class="metric"><span class="value">${data.outlier_rows_estimate}</span><span class="label">POTENTIAL OUTLIERS</span></div>
   `;
 }
 
@@ -494,17 +329,14 @@ function renderSuggestTable(data) {
     tr.dataset.type = col.feature_type;
 
     const missingCell = col.missing_count > 0
-      ? `<span class="status-badge status-warning"><strong>${col.missing_count}</strong><small>${col.missing_pct}% of rows</small></span>`
-      : `<span class="status-badge status-good"><strong>0</strong><small>no missing</small></span>`;
+      ? `${col.missing_count} (${col.missing_pct}%)` : "—";
     const outlierCell = col.outlier_count !== undefined
-      ? (col.outlier_count > 0
-        ? `<span class="status-badge status-warning"><strong>${col.outlier_count}</strong><small>${col.outlier_pct}% of rows</small></span>`
-        : `<span class="status-badge status-good"><strong>0</strong><small>none detected</small></span>`)
+      ? (col.outlier_count > 0 ? `${col.outlier_count} (${col.outlier_pct}%)` : "—")
       : "—";
 
     tr.innerHTML = `
       <td class="mono-cell">${col.column}</td>
-      <td><span class="feature-badge feature-${col.feature_type}">${col.feature_type}</span></td>
+      <td class="mono-cell">${col.feature_type}</td>
       <td>${missingCell}</td>
       <td>${selectHtml("missing", MISSING_OPTIONS[col.feature_type] || ["none"], col.missing_strategy || "none")}</td>
       <td>${outlierCell}</td>
@@ -523,7 +355,8 @@ function selectHtml(name, options, selected) {
 
 $("#applyBtn").addEventListener("click", async () => {
   const btn = $("#applyBtn");
-  setButtonBusy(btn, true, "Applying");
+  btn.disabled = true;
+  btn.textContent = "Applying…";
   try {
     const columns = {};
     $all("#suggestTable tbody tr").forEach(tr => {
@@ -541,7 +374,7 @@ $("#applyBtn").addEventListener("click", async () => {
     });
 
     const body = { drop_duplicates: $("#dropDupCheckbox").checked, columns };
-    const res = await api(`/api/preprocess/${state.sessionId}/${encodeURIComponent(state.currentPreprocessFile)}`, {
+    await api(`/api/preprocess/${state.sessionId}/${encodeURIComponent(state.currentPreprocessFile)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -552,11 +385,11 @@ $("#applyBtn").addEventListener("click", async () => {
   } catch (err) {
     alert("Preprocessing failed: " + err.message);
   } finally {
-    setButtonBusy(btn, false);
+    btn.disabled = false;
+    btn.textContent = "Apply →";
   }
 });
 
-// ---------------------------------------------------------------- STEP 5: final
 async function loadFinalPanel() {
   const sessionData = await api(`/api/session/${state.sessionId}`);
   fillSelect($("#finalFileSelect"), sessionData.files.map(f => f.filename));
@@ -580,11 +413,9 @@ async function loadFinalPanel() {
 
 $("#downloadDataBtn").addEventListener("click", () => {
   const fname = $("#finalFileSelect").value;
-  const token = encodeURIComponent(localStorage.getItem("dagMileAccessToken") || "");
-  window.open(`${API_BASE}/api/download/${state.sessionId}/${encodeURIComponent(fname)}?token=${token}`, "_blank");
+  window.open(`${API_BASE}/api/download/${state.sessionId}/${encodeURIComponent(fname)}`, "_blank");
 });
 
 $("#downloadLogBtn").addEventListener("click", () => {
-  const token = encodeURIComponent(localStorage.getItem("dagMileAccessToken") || "");
-  window.open(`${API_BASE}/api/download-log/${state.sessionId}?token=${token}`, "_blank");
+  window.open(`${API_BASE}/api/download-log/${state.sessionId}`, "_blank");
 });
