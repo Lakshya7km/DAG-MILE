@@ -1,4 +1,4 @@
-const API_BASE = window.DAG_MILE_API || "http://127.0.0.1:8000";
+const API_BASE = window.DAG_MILE_API || (window.location.protocol.startsWith("http") ? window.location.origin : "http://127.0.0.1:8000");
 
 const state = {
   sessionId: null,
