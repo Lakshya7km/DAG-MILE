@@ -7,6 +7,7 @@ falls back to sensible defaults so the app always starts.
 
 import os
 from pathlib import Path
+from typing import Optional
 
 # ── Load .env (must happen before any os.getenv calls elsewhere) ────
 try:
@@ -28,3 +29,7 @@ _raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
 ALLOWED_ORIGINS: list[str] = [
     o.strip() for o in _raw_origins.split(",") if o.strip()
 ]
+
+# ── LLM Configuration (Groq / Free Tier) ────────────────────────────
+GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY") or None
+LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")

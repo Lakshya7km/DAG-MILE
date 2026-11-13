@@ -15,6 +15,7 @@ from pydantic import BaseModel
 import config  # noqa: F401  — loads .env, must be imported FIRST
 import session as sess
 import supabase_storage as storage
+import llm_service
 from preprocessing import apply_preprocessing, suggest_actions
 from schema import detect_relationships, profile_dataframe
 
@@ -30,13 +31,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Log Supabase status at startup
+# Log Supabase & LLM status at startup
 @app.on_event("startup")
 def _log_config():
     if storage.is_configured():
         logger.info("✓ Supabase Storage is configured (bucket: %s)", storage.SUPABASE_BUCKET)
     else:
         logger.info("ℹ Supabase Storage is NOT configured — files will be kept in-memory only")
+
+    if llm_service.is_configured():
+        logger.info("✓ LLM Semantic Matching is configured (model: %s)", config.LLM_MODEL)
+    else:
+        logger.info("ℹ LLM Semantic Matching is NOT configured — fallback to regex/Jaccard matching")
 
 PROJECT_DIR = Path(__file__).resolve().parent
 
@@ -523,9 +529,63 @@ def health():
     return {
         "status": "ok",
         "supabase_configured": storage.is_configured(),
+        "llm_configured": llm_service.is_configured(),
+        "llm_model": config.LLM_MODEL if llm_service.is_configured() else None,
         "host": config.HOST,
         "port": config.PORT,
     }
+
+
+@app.post("/api/llm/harmonize-schema/{session_id}")
+async def llm_harmonize(session_id: str):
+    """
+    Priority 2: Uses Free-tier LLM (Groq / Llama-3.3-70B) to analyze column names
+    and identify synonyms/join keys across uploaded datasets.
+    """
+    try:
+        s = sess.get_session(session_id)
+    except KeyError:
+        raise HTTPException(404, "Session not found")
+
+    if not s["files"]:
+        raise HTTPException(400, "No files uploaded in this session yet")
+
+    result = await llm_service.harmonize_cross_file_schema(s["files"])
+    return result
+
+
+class LLMApplyRenamesBody(BaseModel):
+    renames: List[dict]  # list of { "file": str, "old_name": str, "new_name": str }
+
+
+@app.post("/api/llm/apply-renames/{session_id}")
+def llm_apply_renames(session_id: str, body: LLMApplyRenamesBody):
+    """
+    Batch applies LLM canonical rename suggestions across datasets.
+    """
+    try:
+        sess.get_session(session_id)
+    except KeyError:
+        raise HTTPException(404, "Session not found")
+
+    applied = []
+    for item in body.renames:
+        fname = item.get("file")
+        old_col = item.get("old_name")
+        new_col = item.get("new_name")
+        if not fname or not old_col or not new_col:
+            continue
+        try:
+            df = sess.get_df(session_id, fname)
+            real_col = _find_col(df, old_col)
+            df = df.rename(columns={real_col: new_col})
+            sess.set_df(session_id, fname, df)
+            sess.log(session_id, fname, f"✓ AI Standardized column: '{real_col}' → '{new_col}'")
+            applied.append({"file": fname, "from": real_col, "to": new_col})
+        except Exception as e:
+            logger.warning("Could not apply rename %s in %s: %s", old_col, fname, e)
+
+    return {"status": "ok", "applied": applied}
 
 
 if __name__ == "__main__":

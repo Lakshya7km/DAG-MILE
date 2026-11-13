@@ -67,6 +67,17 @@
       <!-- STEP 3: SCHEMA MATCHING -->
       <section class="panel hidden" id="panel-schema">
         <h2>Schema Matching</h2>
+
+        <!-- AI Semantic Matching Banner -->
+        <div class="ai-banner" id="aiHarmonizeBanner">
+          <div class="ai-banner-content">
+            <span class="ai-badge">✨ AI Schema Harmonizer</span>
+            <p>Use Free-tier LLM (Groq / Llama-3.3-70B) to automatically detect column synonyms (e.g. <code>NO2</code> vs <code>nitrogen dioxide</code>) and standardize headers.</p>
+          </div>
+          <button class="btn secondary" id="runAiHarmonizeBtn">✨ Run AI Matcher</button>
+        </div>
+        <div id="aiHarmonizeResults" class="hidden"></div>
+
         <div id="conflictList"></div>
         <div id="noConflicts" class="hidden empty-state">✓ No naming conflicts detected across files.</div>
 

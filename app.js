@@ -137,6 +137,110 @@ $("#toSchemaBtn").addEventListener("click", () => {
   showStep("schema");
 });
 
+$("#runAiHarmonizeBtn")?.addEventListener("click", runAiHarmonizer);
+
+async function runAiHarmonizer() {
+  const btn = $("#runAiHarmonizeBtn");
+  const resBox = $("#aiHarmonizeResults");
+  btn.disabled = true;
+  btn.textContent = "Analyzing with AI…";
+  resBox.classList.add("hidden");
+  resBox.innerHTML = "";
+
+  try {
+    const data = await api(`/api/llm/harmonize-schema/${state.sessionId}`, {
+      method: "POST"
+    });
+
+    if (!data.configured) {
+      alert("Groq LLM is not configured yet. Add GROQ_API_KEY in your .env file to enable this free-tier AI feature!");
+      return;
+    }
+
+    if (data.error) {
+      alert("AI Harmonizer notice: " + data.error);
+      return;
+    }
+
+    renderAiMatches(data);
+  } catch (err) {
+    alert("AI Matcher failed: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "✨ Run AI Matcher";
+  }
+}
+
+function renderAiMatches(data) {
+  const resBox = $("#aiHarmonizeResults");
+  resBox.innerHTML = "";
+  resBox.classList.remove("hidden");
+
+  if (!data.matches || data.matches.length === 0) {
+    resBox.innerHTML = `<div class="empty-state">✓ AI found no ambiguous column synonyms across datasets.</div>`;
+    return;
+  }
+
+  const header = document.createElement("div");
+  header.className = "schema-summary";
+  header.textContent = `✨ AI identified ${data.matches.length} semantic column mapping${data.matches.length > 1 ? "s" : ""}${data.domain_detected ? ` (Domain: ${data.domain_detected})` : ""}`;
+  resBox.appendChild(header);
+
+  const renamesToApply = [];
+
+  data.matches.forEach(m => {
+    const card = document.createElement("div");
+    card.className = "ai-match-card";
+
+    let mappingLines = "";
+    for (const [fname, col] of Object.entries(m.columns_by_file || {})) {
+      mappingLines += `<div><strong>${fname}</strong> → <code>${col}</code></div>`;
+      renamesToApply.push({ file: fname, old_name: col, new_name: m.canonical_name });
+    }
+
+    card.innerHTML = `
+      <div class="ai-match-header">
+        <span class="ai-match-title">Canonical: <code>${m.canonical_name}</code></span>
+        <span class="ai-match-conf">${Math.round((m.confidence || 0.9) * 100)}% match</span>
+      </div>
+      <div class="ai-match-reason">${m.reason || "Semantic synonym identified across files."}</div>
+      <div class="ai-match-mapping">${mappingLines}</div>
+    `;
+    resBox.appendChild(card);
+  });
+
+  const actionsBar = document.createElement("div");
+  actionsBar.className = "ai-actions-bar";
+  actionsBar.innerHTML = `
+    <button class="btn primary" id="applyAllAiRenamesBtn">✓ Apply All Standardized Names</button>
+    <span class="muted">Standardizes column headers across all files so they merge automatically.</span>
+  `;
+  resBox.appendChild(actionsBar);
+
+  $("#applyAllAiRenamesBtn")?.addEventListener("click", async () => {
+    const applyBtn = $("#applyAllAiRenamesBtn");
+    applyBtn.disabled = true;
+    applyBtn.textContent = "Applying Renames…";
+    try {
+      await api(`/api/llm/apply-renames/${state.sessionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ renames: renamesToApply })
+      });
+      alert(`Standardized ${renamesToApply.length} columns to canonical names!`);
+      await runAnalysis();
+      populateMergeSelectors();
+      renderConflicts();
+      resBox.classList.add("hidden");
+    } catch (err) {
+      alert("Failed applying renames: " + err.message);
+    } finally {
+      applyBtn.disabled = false;
+      applyBtn.textContent = "✓ Apply All Standardized Names";
+    }
+  });
+}
+
 function renderConflicts() {
   const container = $("#conflictList");
   const empty = $("#noConflicts");
