@@ -32,4 +32,4 @@ ALLOWED_ORIGINS: list[str] = [
 
 # ── LLM Configuration (Groq / Free Tier) ────────────────────────────
 GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY") or None
-LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
+LLM_MODEL: str = os.getenv("LLM_MODEL", "qwen/qwen3.8-27b")
