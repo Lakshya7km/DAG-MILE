@@ -1,0 +1,10 @@
+patient_code,timestamp,blood_pressure_systolic,temperature_fahrenheit,pulse_rate,clinical_department
+PT-1001,12/01/2025 08:30,119.0,98.5,72,Cardiology
+PT-1002,12/01/2025 09:15,,99.0,76,Cardiology
+PT-1003,2025-01-12 10:00,142.0,102.1,110,Infectious Diseases
+PT-1004,12-01-2025 11:20,118.0,,68,Orthopedics
+PT-1005,12/01/2025 12:45,120.0,98.4,70,Cardiology
+PT-1006,12/01/2025 14:00,131.0,98.6,79,Cardiology
+PT-1007,12/01/2025 15:10,,98.8,75,General Medicine
+PT-1008,12/01/2025 16:00,121.0,98.9,70,General Medicine
+PT-1011,12/01/2025 19:00,128.0,98.2,82,Neurology

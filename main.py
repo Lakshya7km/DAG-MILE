@@ -120,10 +120,15 @@ def clean_dcr_excel(raw_bytes: bytes) -> pd.DataFrame:
                 header_idx = i
                 break
                 
+        # General header detection: look for header keywords or a row with multiple non-empty distinct string labels
         if header_idx is None:
             for i, row in raw_df.iterrows():
-                row_vals = [str(c).replace("\xa0", " ").strip().lower() for c in row if pd.notna(c)]
-                if any("date" in c for c in row_vals) and not any("station" in c for c in row_vals):
+                row_vals = [str(c).replace("\xa0", " ").strip().lower() for c in row if pd.notna(c) and str(c).strip()]
+                # Skip title banner rows that contain metadata/report keywords
+                if any(bad in c for c in row_vals for bad in ["confidential", "report", "export date", "operator:", "note:"]):
+                    continue
+                # True table headers typically have >= 3 non-empty columns with typical attribute indicators
+                if len(row_vals) >= 3 and any(k in c for c in row_vals for k in ["date", "time", "id", "code", "patient", "temp", "bp", "rate", "name", "val"]):
                     header_idx = i
                     break
 
@@ -164,7 +169,8 @@ def clean_dcr_excel(raw_bytes: bytes) -> pd.DataFrame:
         data_df = data_df.dropna(axis=1, how="all")
         
         first_col = data_df.columns[0]
-        data_df = data_df[data_df[first_col].astype(str).str.contains(r"\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2}", regex=True, na=False)]
+        # Filter valid data rows: either has date/time or an ID/code token
+        data_df = data_df[data_df[first_col].astype(str).str.contains(r"\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2}|[A-Za-z0-9_-]{3,}", regex=True, na=False)]
         
         all_dfs.append(data_df)
 
